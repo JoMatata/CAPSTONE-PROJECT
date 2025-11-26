@@ -1,0 +1,72 @@
+version: 2
+
+models:
+  - name: chw_activity_monthly
+    description: |
+      Monthly aggregation of Community Health Worker (CHW) activities.
+      
+      This model provides dashboard-ready metrics showing CHW performance
+      and activity volumes by month. Activities are assigned to months using
+      a 26th-of-month cutoff rule to account for delayed field reporting.
+      
+      **Grain:** One row per CHW per month
+      **Refresh:** Incremental (processes last 2 months on each run)
+    
+    config:
+      tags: ['metrics', 'chw', 'monthly']
+    
+    columns:
+      - name: chv_id
+        description: Unique identifier for the Community Health Worker
+        tests:
+          - not_null
+          - relationships:
+              to: ref('fct_chv_activity')
+              field: chv_id
+      
+      - name: report_month
+        description: |
+          First day of the reporting month (DATE format: YYYY-MM-01).
+          Activities on/after the 26th are assigned to the NEXT month.
+        tests:
+          - not_null
+      
+      - name: total_activities
+        description: Total number of activities performed by this CHW in this month
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+      
+      - name: unique_households_visited
+        description: Number of distinct households visited (deduplicated)
+        tests:
+          - not_null
+      
+      - name: unique_patients_served
+        description: Number of distinct patients served (NULLs excluded)
+        tests:
+          - not_null
+      
+      - name: pregnancy_visits
+        description: Count of pregnancy/ANC visits
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+      
+      - name: child_assessments
+        description: Count of under-5 child health assessments
+        tests:
+          - not_null
+      
+      - name: family_planning_visits
+        description: Count of family planning counseling visits
+        tests:
+          - not_null
+    
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - chv_id
+            - report_month
