@@ -115,8 +115,6 @@ aggregated as (
         
         COUNT(DISTINCT household_id) as unique_households_visited,
         COUNT(DISTINCT patient_id) as unique_patients_served,
-        -- NB: COUNT(DISTINCT ...) automatically ignores NULLs
-        
         COUNT(CASE WHEN activity_type = 'pregnancy_visit' THEN 1 END) as pregnancy_visits,
         COUNT(CASE WHEN activity_type = 'child_assessment' THEN 1 END) as child_assessments,
         COUNT(CASE WHEN activity_type = 'family_planning' THEN 1 END) as family_planning_visits
